@@ -1,0 +1,38 @@
+namespace {}
+namespace mw_cppms {
+
+}
+ namespace mw_cppms {}
+namespace  mw_cppms {}
+using namespace mw_cppms;
+using namespace cppmicroservicesa; #no mod
+ using  namespace  mw_cppms ;
+
+auto temp = mw_cppms::something::otherthing("std::vector<mw_cppms::thing>")
+
+auto temp 
+= mw_cppms::something::otherthing("std::vector<mw_cppms::thing>")
+
+auto temp = mw_cppms::
+    something::otherthing("std::vector< mw_cppms 
+:: 
+    thing>")
+
+mw_cppms
+::something
+
+namespace 
+mw_cppms
+
+namespace mw_cppms::new_namespace::inner_namespace {}
+
+namespace mw_cppms::
+new_namespace::
+inner_namespace {}
+
+namespace mw_cppms::inline new_name::inline other {}
+
+namespace mw_cppms
+    ::
+    inline new_name::
+    inline other {}

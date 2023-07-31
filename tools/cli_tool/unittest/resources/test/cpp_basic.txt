@@ -1,0 +1,38 @@
+namespace {}
+namespace cppmicroservices {
+
+}
+ namespace cppmicroservices {}
+namespace  cppmicroservices {}
+using namespace cppmicroservices;
+using namespace cppmicroservicesa; #no mod
+ using  namespace  cppmicroservices ;
+
+auto temp = cppmicroservices::something::otherthing("std::vector<cppmicroservices::thing>")
+
+auto temp 
+= cppmicroservices::something::otherthing("std::vector<cppmicroservices::thing>")
+
+auto temp = cppmicroservices::
+    something::otherthing("std::vector< cppmicroservices 
+:: 
+    thing>")
+
+cppmicroservices
+::something
+
+namespace 
+cppmicroservices
+
+namespace cppmicroservices::new_namespace::inner_namespace {}
+
+namespace cppmicroservices::
+new_namespace::
+inner_namespace {}
+
+namespace cppmicroservices::inline new_name::inline other {}
+
+namespace cppmicroservices
+    ::
+    inline new_name::
+    inline other {}
