@@ -1,8 +1,7 @@
 import re
 from timeit import default_timer
 from glob import glob
-from multiprocessing import Pool
-import concurrent.futures
+from functools import wraps
 from os.path import dirname, abspath, expanduser, expandvars, join
 #typing functions was introduced in python 3.5. Support or not?
 
@@ -11,6 +10,7 @@ def timeit(func):
     '''
     used as decorator to time function
     '''
+    @wraps(func)
     def new_func(*args, **kwargs):
         start = default_timer()
         res = func(*args, **kwargs)
@@ -19,13 +19,11 @@ def timeit(func):
     return new_func
 
 class regexDefinitions():
-    '''
-    Basically just using this class as a namespace
-    '''
+
     @staticmethod
     def readOnlyUpdatedRegexMatcher(string, replace_with, to_replace = 'cppmicroservices'):
         def regNameDec(string, replace_with, to_replace):
-            fn = lambda matchobj : f"{matchobj.group(1)}{replace_with}{matchobj.group(5)}"
+            fn = lambda matchobj : f"{matchobj.group(1)}{replace_with}{matchobj.group(5)}" # 78 chars in this line can use as ref
             return re.subn(rf'((^\s{{0}}|[^\w_])namespace(\s|")+?)({to_replace})([^\w_]|\s{{0}}$)', fn, string)
 
         def regAliasName(string, replace_with, to_replace):
@@ -35,10 +33,13 @@ class regexDefinitions():
         def regScopePost(string, replace_with, to_replace):
             fn = lambda matchobj : f"{matchobj.group(1)}{replace_with}{matchobj.group(3)}{matchobj.group(5)}"
             return re.subn(rf'(^\s{{0}}|[^\w_])({to_replace})((\s|")*?)(::)', fn, string)
+        def regScopePre(string, replace_with, to_replace):
+            fn = lambda matchobj : f"{matchobj.group(1)}{matchobj.group(2)}{matchobj.group(4)}{replace_with}{matchobj.group(8)}"
+            return re.subn(rf'(::)((\s|")*?)(inline(\s|")*?|(\s|")*?)({to_replace})([^\w_]|\s{{0}}$)', fn, string)
 
         new_str = string + ""
         count = 0
-        check = [regNameDec, regAliasName, regScopePost]
+        check = [regNameDec, regAliasName, regScopePost, regScopePre]
         for func in check:
             temp_string, temp_count = func(new_str, replace_with, to_replace)
             new_str = temp_string
@@ -49,13 +50,14 @@ class regexDefinitions():
     def readOnlySimpleMatcher(string, replace_with, to_replace = 'cppmicroservices'):
         fn = lambda matchobj : f"{matchobj.group(1)}{replace_with}{matchobj.group(3)}"
         return re.subn(rf'([^./1\w]|^\s{{0}})({to_replace})([^./1\w\-(]|\s{{0}}$)', fn, string)
-
-
-
+    
 class compareRegMatching():
     '''
     A class that can be used to compare behavior of regex matching functions used in script
     '''
+
+    file_types_to_check = ('.hpp', '.cpp', '.h', '.json', '.tpp', '.in')
+
     @timeit
     def __init__(self, dir_to_test, new_ns_name, old_ns_name = 'cppmicroservices'):
         '''
@@ -65,7 +67,7 @@ class compareRegMatching():
         self.replace_with = new_ns_name
         self.changes = {}
         self.count = {}
-        self.files = self.__findFiles(dir_to_test)
+        self.files = self._findFiles(dir_to_test)
     
     @timeit
     def readFiles(self, regexMatcher):
@@ -80,12 +82,12 @@ class compareRegMatching():
         self.count[regexMatcher.__name__] = 0 
 
         for fi in self.files:
-            cnt, change = self.__processFile(fi, regexMatcher)
+            cnt, change = self._processFile(fi, regexMatcher)
             self.count[regexMatcher.__name__] += cnt
             self.changes[regexMatcher.__name__].update(change)
         return
     
-    def __processFile(self, fileName, regexMatcher):
+    def _processFile(self, fileName, regexMatcher):
         '''
         scan given file using regexMatcher function and detect potential modifications made
         '''
@@ -97,9 +99,9 @@ class compareRegMatching():
         lines_orig = content.split('\n')
         lines_after = new_file.split('\n')
 
-        return count, self.__compareFileBeforeAfter(lines_orig, lines_after, fileName)
+        return count, self._compareFileBeforeAfter(lines_orig, lines_after, fileName)
     
-    def __compareFileBeforeAfter(self, fcontent1, fcontent2, fileName):
+    def _compareFileBeforeAfter(self, fcontent1, fcontent2, fileName):
         '''
         compare original contents of file and simulated new contents
         '''
@@ -115,13 +117,12 @@ class compareRegMatching():
         return ret_list
     
     @timeit
-    def __findFiles(self, dir):
+    def _findFiles(self, dir):
         '''
-        return a list of files in given dir to open
+        return a list of files in given dir to open. file_types_to_check / copytrees args are good place to check for errors.
         '''
-        file_types_to_check = ('.hpp', '.cpp', '.h', '.json', '.tpp', '.in')
         files = [abspath(expanduser(expandvars(file))) for file in glob(f"{dir}/**/*", recursive=True) 
-                 if file.endswith(file_types_to_check) and not abspath(expanduser(expandvars(file))).startswith(join(dir, 'build'))]
+                 if file.endswith(self.file_types_to_check) and not abspath(expanduser(expandvars(file))).startswith(join(dir, 'build'))]
         return files
     
     @timeit
@@ -133,6 +134,7 @@ class compareRegMatching():
         exclusive_second = self.changes[regexMatcher2.__name__] - self.changes[regexMatcher1.__name__]
 
         with open(fileWrite, 'w', encoding='utf-8') as file:
+            file.write(f'file types checking: {self.file_types_to_check}\n')
             file.write(f'first: {regexMatcher1.__name__}\n_______________________\n')
             for i in exclusive_first:
                 file.write(f"filename: {i[0]}; line number: {i[1]}\nnew line: {i[2]}\nold line: {i[3]}\n\n")
@@ -143,11 +145,21 @@ class compareRegMatching():
 
 
 if __name__ == "__main__":
-    # a little tool. a little test.
+    # a little tool
     top_dir = dirname(dirname(dirname(dirname(abspath(__file__)))))
     reg = compareRegMatching(top_dir, 'cppms')
-    reg.readFiles(regexDefinitions.readOnlyUpdatedRegexMatcher)
+
+    do_nothing_func = lambda string, replace_with, to_replace : (string, 0)
+    do_nothing_func.__name__ = "do_nothing_func_lambda"
+
+    basic_func = lambda string, replace_with, to_replace : (string.replace(to_replace, replace_with), string.count(to_replace))
+    basic_func.__name__ = "basic_func_lambda"
+
+    reg.readFiles(do_nothing_func)
+    reg.readFiles(basic_func)
     reg.readFiles(regexDefinitions.readOnlySimpleMatcher)
-    reg.diffRegexMatchers(regexDefinitions.readOnlyUpdatedRegexMatcher, 
-                          regexDefinitions.readOnlySimpleMatcher, f'{top_dir}/tools/cli_tool/rando.txt')
+    reg.readFiles(regexDefinitions.readOnlyUpdatedRegexMatcher)
+    #reg.diffRegexMatchers(regexDefinitions.readOnlyUpdatedRegexMatcher, 
+    #                      regexDefinitions.readOnlySimpleMatcher, f'{top_dir}/tools/cli_tool/rando.txt')
     print(reg.count)
+
