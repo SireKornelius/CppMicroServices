@@ -5,11 +5,10 @@ from functools import wraps
 from os.path import dirname, abspath, expanduser, expandvars, join
 #typing functions was introduced in python 3.5. Support or not?
 
-
 def timeit(func):
-    '''
+    """
     used as decorator to time function
-    '''
+    """
     @wraps(func)
     def new_func(*args, **kwargs):
         start = default_timer()
@@ -19,11 +18,10 @@ def timeit(func):
     return new_func
 
 class regexDefinitions():
-
     @staticmethod
     def readOnlyUpdatedRegexMatcher(string, replace_with, to_replace = 'cppmicroservices'):
         def regNameDec(string, replace_with, to_replace):
-            fn = lambda matchobj : f"{matchobj.group(1)}{replace_with}{matchobj.group(5)}" # 78 chars in this line can use as ref
+            fn = lambda matchobj : f"{matchobj.group(1)}{replace_with}{matchobj.group(5)}"
             return re.subn(rf'((^\s{{0}}|[^\w_])namespace(\s|")+?)({to_replace})([^\w_]|\s{{0}}$)', fn, string)
 
         def regAliasName(string, replace_with, to_replace):
@@ -50,19 +48,19 @@ class regexDefinitions():
     def readOnlySimpleMatcher(string, replace_with, to_replace = 'cppmicroservices'):
         fn = lambda matchobj : f"{matchobj.group(1)}{replace_with}{matchobj.group(3)}"
         return re.subn(rf'([^./1\w]|^\s{{0}})({to_replace})([^./1\w\-(]|\s{{0}}$)', fn, string)
-    
+   
 class compareRegMatching():
-    '''
+    """
     A class that can be used to compare behavior of regex matching functions used in script
-    '''
+    """
 
     file_types_to_check = ('.hpp', '.cpp', '.h', '.json', '.tpp', '.in')
 
     @timeit
     def __init__(self, dir_to_test, new_ns_name, old_ns_name = 'cppmicroservices'):
-        '''
+        """
         directory to simulate the script on, new namespace name, old namespace name (default cppmicroservices)
-        '''
+        """
         self.to_replace = old_ns_name
         self.replace_with = new_ns_name
         self.changes = {}
@@ -71,10 +69,10 @@ class compareRegMatching():
     
     @timeit
     def readFiles(self, regexMatcher):
-        '''
-        takes in a regexMatcher function (string, replace_with, to_replace) -> modified string which is used to
+        """
+        takes in a regexMatcher function (string: str, replace_with: str, to_replace: str) -> modified string which is used to
         parse and modify files
-        '''
+        """
         if regexMatcher.__name__ in self.changes:
             return
         
@@ -88,9 +86,9 @@ class compareRegMatching():
         return
     
     def _processFile(self, fileName, regexMatcher):
-        '''
+        """
         scan given file using regexMatcher function and detect potential modifications made
-        '''
+        """
         with open(fileName, 'r', encoding='utf-8') as file:
             content = file.read()
 
@@ -102,9 +100,9 @@ class compareRegMatching():
         return count, self._compareFileBeforeAfter(lines_orig, lines_after, fileName)
     
     def _compareFileBeforeAfter(self, fcontent1, fcontent2, fileName):
-        '''
+        """
         compare original contents of file and simulated new contents
-        '''
+        """
         if len(fcontent1) != len(fcontent2):
             raise ValueError("files have different num lines")
         ret_list = []
@@ -118,18 +116,18 @@ class compareRegMatching():
     
     @timeit
     def _findFiles(self, dir):
-        '''
+        """
         return a list of files in given dir to open. file_types_to_check / copytrees args are good place to check for errors.
-        '''
+        """
         files = [abspath(expanduser(expandvars(file))) for file in glob(f"{dir}/**/*", recursive=True) 
                  if file.endswith(self.file_types_to_check) and not abspath(expanduser(expandvars(file))).startswith(join(dir, 'build'))]
         return files
     
     @timeit
     def diffRegexMatchers(self, regexMatcher1, regexMatcher2, fileWrite):
-        '''
-        Write the difference in proposed modifications of two regex matcher functions to fileWrite
-        '''
+        """
+        Write the difference in proposed modifications of two regex matcher functions to fileWrite.
+        """
         exclusive_first = self.changes[regexMatcher1.__name__] - self.changes[regexMatcher2.__name__]
         exclusive_second = self.changes[regexMatcher2.__name__] - self.changes[regexMatcher1.__name__]
 

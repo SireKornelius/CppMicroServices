@@ -6,11 +6,14 @@ from multiprocessing import Pool
 from argparse import ArgumentParser
 from utils import check_valid, progressbar, change_file_namespace
 
+# Script only checks these file types
+file_types_to_check = ('.hpp', '.cpp', '.h', '.json', '.tpp', '.in')
+
 
 def parse_args():
-    '''
+    """
     Parse command line arguments 
-    '''
+    """
     parser = ArgumentParser(description='Copy and change cppmicroservices namespace into specified dir')
     
     parser.add_argument(
@@ -54,11 +57,10 @@ def parse_args():
     
     return parser.parse_args()
 
-
 def modify_namespace():
-    '''
+    """
     Copy directory to specified path and modify new directory namespace name
-    '''
+    """
     starttime = default_timer()
 
     args = parse_args()
@@ -83,26 +85,21 @@ def modify_namespace():
     
     new_dir = abspath(expanduser(expandvars(new_dir)))
     dir = abspath(expanduser(expandvars(dir)))
-
-    file_types_to_check = ('.hpp', '.cpp', '.h', '.json', '.tpp', '.in')
-
-    #not touching files in build dir
     
+    # Only getting files that end with specified types
+    # and not in build dir for to be inspected
     files = [abspath(expanduser(expandvars(file))) for file in glob(f"{dir}/**/*", recursive=True) 
              if file.endswith(file_types_to_check) and 
              not abspath(expanduser(expandvars(file))).startswith(join(dir, 'build'))] 
     
     finding_files_time = default_timer() - starttime
     temp_time = default_timer()
-
-    # copy tree after looking through files
-    # if need to check more file types change
     
+    # Copying all files in dir to new_dir except for certain files 
     copytree(
         dir, 
         new_dir, 
-        ignore=ignore_patterns('.git*', 'build', '__pycache__', *file_types_to_check), 
-        dirs_exist_ok=True
+        ignore=ignore_patterns('.git*', 'build', '__pycache__', *file_types_to_check)
         )    
     copying_time = default_timer() - temp_time
 
@@ -119,7 +116,6 @@ def modify_namespace():
     else:
         with Pool() as pool:
             results = []
-
             for fi in files:
                 result = pool.apply_async(change_file_namespace, (fi, new_dir, dir, to_replace, replace_with))
                 results.append(result)

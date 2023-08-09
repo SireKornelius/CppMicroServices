@@ -11,7 +11,8 @@ class TestFile(unittest.TestCase):
         cls.python_interp = executable
         parent_dir = dirname(dirname(abspath(__file__)))
         cls.path_to_script = join(parent_dir, 'src', 'script.py')
-        cls.dirs_to_remove = ['./test/resources/expected/test_dir']
+        cls.dirs_to_remove = ['./test/resources/expected/test_dir', 
+                              './test/resources/expected/test_dir1', './test/resources/expected/test_dir_change']
         
     @classmethod
     def tearDownClass(cls):
@@ -65,7 +66,7 @@ class TestFile(unittest.TestCase):
             )
         self.assertEqual(res.returncode, 1)
     
-    def test_valid(self):
+    def test_valid_no_change(self):
         res = subprocess.run(
             [
             self.python_interp,
@@ -87,7 +88,7 @@ class TestFile(unittest.TestCase):
             self.path_to_script, 
             'mw_cppms', 
             './test/resources/test/test_dir',
-            './test/resources/expected/test_dir', 
+            './test/resources/expected/test_dir1', 
             '-sp', 
             '-st'
             ], 
@@ -95,9 +96,24 @@ class TestFile(unittest.TestCase):
             )
         self.assertEqual(res.returncode, 0)
 
-        comp = dircmp('./test/resources/expected/expected_test_dir', './test/resources/expected/test_dir')
+        comp = dircmp('./test/resources/expected/expected_test_dir', './test/resources/expected/test_dir1')
         self.assertEqual(len(comp.diff_files), 0)
+    
+    def test_valid_change(self):
+        res = subprocess.run(
+            [
+            self.python_interp,
+            self.path_to_script, 
+            'mw_cppms', 
+            './test/resources/test/test_dir_change', 
+            './test/resources/expected/test_dir_change'
+            ], 
+            capture_output=True
+            )
+        self.assertEqual(res.returncode, 0)
 
+        comp = dircmp('./test/resources/expected/expected_test_dir_change', './test/resources/expected/test_dir_change')
+        self.assertEqual(len(comp.diff_files), 0)
 
 
 if __name__ == '__main__':

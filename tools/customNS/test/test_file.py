@@ -3,8 +3,7 @@ import os
 from filecmp import cmp
 from src.utils import change_file_namespace
 
-#changeFileNamespace(file_name, new_dir, dir, to_replace, replace_with):
-# Assuming all inputs are valid because they are validated beforehand
+#Assuming all inputs are valid because they are validated beforehand
 class TestFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -1,7 +1,6 @@
-import unittest
-from src.utils import reg_name_dec, reg_alias_name, reg_scope_post, sub_regex, reg_scope_pre
+""" 
+All usages of namespaces according to cppreferences
 
-''' All usages of namespaces according to cppreferences
 namespace ns-name { declarations }	(1)	
 inline namespace ns-name { declarations }	(2)	(since C++11)
 namespace { declarations }	(3)
@@ -11,15 +10,17 @@ using ns-name :: member-name ;	(6)
 namespace name = qualified-namespace ;	(7)	
 namespace ns-name :: member-name { declarations }	(8)	(since C++17)
 namespace ns-name :: inline member-name { declarations }	(9)	(since C++20)
-'''
+"""
+import unittest
+from src.utils import reg_name_dec, reg_alias_name, reg_scope_post, sub_regex, reg_scope_pre
 
 class TestRegex(unittest.TestCase):
 
-    def test_match_reg_name_dec(self): #added whitespace tests
-        '''
+    def test_match_reg_name_dec(self):
+        """
         Should match (1) (2) (5) (/8) (/9)
-        '''
-        # (1)
+        """
+        #match (1)
         self.assertEqual(
             ("namespace mw_cppms {}", 1), 
             reg_name_dec("cppmicroservices", "mw_cppms", "namespace cppmicroservices {}")
@@ -85,13 +86,13 @@ class TestRegex(unittest.TestCase):
             reg_name_dec("cppmicroservices", "mw_cppms", '"namespace" \n\n"cppmicroservices"')
             )
 
-        #2
+        # match (2)
         self.assertEqual(
             ("inline namespace mw_cppms", 1), 
             reg_name_dec("cppmicroservices", "mw_cppms", "inline namespace cppmicroservices")
             )
 
-        #5
+        # match (5)
         self.assertEqual(
             ("using namespace mw_cppms", 1), 
             reg_name_dec("cppmicroservices", "mw_cppms", "using namespace cppmicroservices")
@@ -120,7 +121,7 @@ class TestRegex(unittest.TestCase):
             ("using\nnamespace \t\n mw_cppms;", 1), 
             reg_name_dec("cppmicroservices", "mw_cppms", "using\nnamespace \t\n cppmicroservices;")
             )
-        #8
+        # match (/8)
         self.assertEqual(
             ("namespace mw_cppms::test {}", 1), 
             reg_name_dec("cppmicroservices", "mw_cppms", "namespace cppmicroservices::test {}")
@@ -142,7 +143,7 @@ class TestRegex(unittest.TestCase):
             reg_name_dec("cppmicroservices", "mw_cppms", "namespace \ncppmicroservices\n ::test {}")
             )
 
-        #9
+        # match (/9)
         self.assertEqual(
             ("namespace mw_cppms::inline test{}", 1), 
             reg_name_dec("cppmicroservices", "mw_cppms", "namespace cppmicroservices::inline test{}")
@@ -170,10 +171,10 @@ class TestRegex(unittest.TestCase):
 
 
     def test_not_match_reg_name_dec(self): 
-        '''
-        Should not match
-        '''
-        # (1)
+        """
+        Should not match (1) (2) (5) (/8) (/9)
+        """
+        # not match (1)
         self.assertEqual(
             ("int temp = 3",0), 
             reg_name_dec("cppmicroservices", "mw_cppms", "int temp = 3")
@@ -228,7 +229,7 @@ class TestRegex(unittest.TestCase):
             reg_name_dec("cppmicroservices", "mw_cppms", "namespace\n\tcppmicroservicess")
             )
         
-        # (2)       
+        # not match (2)       
         self.assertEqual(
             ("inline namespace cppmicroservicess", 0), 
             reg_name_dec("cppmicroservices", "mw_cppms", "inline namespace cppmicroservicess")
@@ -241,7 +242,7 @@ class TestRegex(unittest.TestCase):
             ("inline\nnamespace\n\tCppmicroservices", 0), 
             reg_name_dec("cppmicroservices", "mw_cppms", "inline\nnamespace\n\tCppmicroservices")
             )
-        # (5)
+        # not match (5)
         self.assertEqual(
             ("using namespace cppmicroservicess;", 0), 
             reg_name_dec("cppmicroservices", "mw_cppms", "using namespace cppmicroservicess;")
@@ -258,7 +259,7 @@ class TestRegex(unittest.TestCase):
             ("using\nnamespace\n\nCppmicroservices", 0), 
             reg_name_dec("cppmicroservices", "mw_cppms", "using\nnamespace\n\nCppmicroservices")
             )
-        # (8)
+        # not match (8)
         self.assertEqual(
             ("namespace top_namespace::test {}", 0), 
             reg_name_dec("cppmicroservices", "mw_cppms", "namespace top_namespace::test {}")
@@ -267,7 +268,7 @@ class TestRegex(unittest.TestCase):
             ("namespace\ntop_namespace::test {}", 0), 
             reg_name_dec("cppmicroservices", "mw_cppms", "namespace\ntop_namespace::test {}")
             )
-        # (9)
+        # not match (9)
         self.assertEqual(
             ("namespace top_namespace::inline test {}", 0), 
             reg_name_dec("cppmicroservices", "mw_cppms", "namespace top_namespace::inline test {}")
@@ -279,10 +280,10 @@ class TestRegex(unittest.TestCase):
 
 
     def test_match_reg_alias_name(self):
-        '''
+        """
         Should match (7)
-        '''
-        # (7)
+        """
+        # match (7)
         self.assertEqual(
             ("namespace something = mw_cppms", 1), 
             reg_alias_name("cppmicroservices", "mw_cppms", "namespace something = cppmicroservices")
@@ -319,7 +320,9 @@ class TestRegex(unittest.TestCase):
 
 
     def test_not_match_reg_alias_name(self):
-        # (7)
+        """
+        Should not match (7)
+        """
         self.assertEqual(
             ("cppmicroservices", 0), 
             reg_alias_name("cppmicroservices", "mw_cppms", "cppmicroservices")
@@ -350,10 +353,10 @@ class TestRegex(unittest.TestCase):
             )
 
     def test_match_reg_scope_post(self):
-        '''
-        (4) (6)
-        '''
-        # (4)
+        """
+        Should match (4) (6)
+        """
+        # match (4)
         self.assertEqual(
             ("mw_cppms::something", 1), 
             reg_scope_post("cppmicroservices", "mw_cppms", "cppmicroservices::something")
@@ -413,7 +416,6 @@ class TestRegex(unittest.TestCase):
             reg_scope_post("cppmicroservices", "mw_cppms", "cppmicroservices::here; cppmicroservices::there; cppmicroservices::any")
             )
 
-        # split in strings.
         self.assertEqual(
             ("std::vector<mw_cppms::things> var_ =\n getSomething(\"mw_cppms\"\"::res\")", 2), 
             reg_scope_post("cppmicroservices", "mw_cppms", "std::vector<cppmicroservices::things> var_ =\n getSomething(\"cppmicroservices\"\"::res\")")
@@ -422,7 +424,7 @@ class TestRegex(unittest.TestCase):
             ("std::vector<mw_cppms::things> var_ =\n getSomething(\"mw_cppms\"\n\"::res\")", 2), 
             reg_scope_post("cppmicroservices", "mw_cppms", "std::vector<cppmicroservices::things> var_ =\n getSomething(\"cppmicroservices\"\n\"::res\")")
             )
-        # (7)
+        # match (6)
         self.assertEqual(
             ("using mw_cppms::some_class", 1), 
             reg_scope_post("cppmicroservices", "mw_cppms", "using cppmicroservices::some_class")
@@ -459,7 +461,10 @@ class TestRegex(unittest.TestCase):
 
 
     def test_not_match_reg_scope_post(self):
-        # (4)
+        """
+        Should not match (4) (6)
+        """
+        # not match (4)
         self.assertEqual(
             ("int temp = 3", 0), 
             reg_scope_post("cppmicroservices", "mw_cppms", "int temp = 3")
@@ -496,7 +501,7 @@ class TestRegex(unittest.TestCase):
             ("Cppmicroservices::something", 0), 
             reg_scope_post("cppmicroservices", "mw_cppms", "Cppmicroservices::something"))
 
-        # (7)
+        # not match (6)
         self.assertEqual(
             ("using ns::some_class", 0), 
             reg_scope_post("cppmicroservices", "mw_cppms", "using ns::some_class")
@@ -525,9 +530,9 @@ class TestRegex(unittest.TestCase):
 
 
     def test_match_reg_scope_pre(self):
-        '''
-        (/8) (/9)
-        '''
+        """
+        Match edge cases (/8) (/9)
+        """
         self.assertEqual(
             ("namespace foo::inline mw_cppms{}", 1), 
             reg_scope_pre("cppmicroservices", "mw_cppms", "namespace foo::inline cppmicroservices{}")
@@ -578,6 +583,9 @@ class TestRegex(unittest.TestCase):
             )
 
     def test_not_match_reg_scope_pre(self):
+        """
+        Not match edge cases (/8) (/9)
+        """
         self.assertEqual(
             ("cppmicroservices", 0), 
             reg_scope_pre("cppmicroservices", "mw_cppms", "cppmicroservices")
@@ -597,9 +605,9 @@ class TestRegex(unittest.TestCase):
 
 
     def test_match_all_sub_regex(self):
-        '''
+        """
         Test that matching still works as expected and in conjunction with each other
-        '''
+        """
         self.assertEqual(
             ("namespace mw_cppms {}", 1), 
             sub_regex("cppmicroservices", "mw_cppms", "namespace cppmicroservices {}")
