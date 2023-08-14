@@ -1,11 +1,6 @@
 if(US_BUILD_TESTING)
   set(test_script TestNamespaceModScript)
-
-  if ("${CMAKE_VERSION}" VERSION_LESS "3.12.0")
-    find_package(PythonInterp REQUIRED)
-  else()
-    find_package(Python COMPONENTS Interpreter REQUIRED)
-  endif()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
 
   if (Python_Interpreter_FOUND) 
       message("${Python_EXECUTABLE} found")

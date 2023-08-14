@@ -119,10 +119,12 @@ class compareRegMatching():
         """
         return a list of files in given dir to open. file_types_to_check / copytrees args are good place to check for errors.
         """
+        
         files = [abspath(expanduser(expandvars(file))) for file in glob(f"{dir}/**/*", recursive=True) 
                  if file.endswith(self.file_types_to_check) and not abspath(expanduser(expandvars(file))).startswith(join(dir, 'build'))]
         return files
-    
+
+        
     @timeit
     def diffRegexMatchers(self, regexMatcher1, regexMatcher2, fileWrite):
         """
@@ -139,13 +141,46 @@ class compareRegMatching():
             file.write(f'\nsecond: {regexMatcher2.__name__}\n________________________\n')
             for i in exclusive_second:
                 file.write(f"filename: {i[0]}; line number: {i[1]}\nnew line: {i[2]}\nold line: {i[3]}\n\n")
+        return
+    @timeit
+    def diffTypes(self, other, fileWrite):
+        """
+        Write the difference in proposed modifications of two regex matcher functions to fileWrite.
+        """
+        exclusive_first = other.changes[regexDefinitions.readOnlyUpdatedRegexMatcher.__name__] - self.changes[regexDefinitions.readOnlyUpdatedRegexMatcher.__name__]
+        exclusive_second = self.changes[regexDefinitions.readOnlyUpdatedRegexMatcher.__name__] - other.changes[regexDefinitions.readOnlyUpdatedRegexMatcher.__name__]
+
+        with open(fileWrite, 'w', encoding='utf-8') as file:
+            file.write(f'file types checking: {self.file_types_to_check}\n')
+            file.write(f'first: \n_______________________\n')
+            for i in exclusive_first:
+                file.write(f"filename: {i[0]}; line number: {i[1]}\nnew line: {i[2]}\nold line: {i[3]}\n\n")
+            file.write(f'\nsecond: \n________________________\n')
+            for i in exclusive_second:
+                file.write(f"filename: {i[0]}; line number: {i[1]}\nnew line: {i[2]}\nold line: {i[3]}\n\n")
         return 
+    
+class rMdiff(compareRegMatching):
+    
+    def _findFiles(self, dir):
+        top_dir = abspath(expanduser(expandvars(dirname(dirname(dirname(dirname(__file__)))))))
+        file_types_to_check = ('.hpp', '.cpp', '.h', '.json', '.tpp', '.in')
+        folders_to_check = ['compendium', 'framework', 'httpservice', 'shellservice', 'util', 'webconsole', 'tools/shell']
+        files = set()
+        folders = [abspath(expanduser(expandvars(join(top_dir, directory)))) for directory in folders_to_check] 
+        print(folders)
+        for i in folders:
+            for file in glob(f"{i}/**/*", recursive=True):
+                if file.endswith(file_types_to_check):
+                    files.add(file)
+        return list(files)
 
 
 if __name__ == "__main__":
     # a little tool
     top_dir = dirname(dirname(dirname(dirname(abspath(__file__)))))
     reg = compareRegMatching(top_dir, 'cppms')
+    newer = rMdiff(top_dir, 'cppms')
 
     do_nothing_func = lambda string, replace_with, to_replace : (string, 0)
     do_nothing_func.__name__ = "do_nothing_func_lambda"
@@ -157,7 +192,10 @@ if __name__ == "__main__":
     reg.readFiles(basic_func)
     reg.readFiles(regexDefinitions.readOnlySimpleMatcher)
     reg.readFiles(regexDefinitions.readOnlyUpdatedRegexMatcher)
-    #reg.diffRegexMatchers(regexDefinitions.readOnlyUpdatedRegexMatcher, 
-    #                      regexDefinitions.readOnlySimpleMatcher, f'{top_dir}/tools/cli_tool/rando.txt')
+    newer.readFiles(regexDefinitions.readOnlyUpdatedRegexMatcher)
+
+    reg.diffTypes(newer, f'{top_dir}/tools/customNS/rando.txt')
+    #reg.diffRegexMatchers(regexDefinitions.readOnlyUpdatedRegexMatcher, regexDefinitions.readOnlySimpleMatcher, f'{top_dir}/tools/cli_tool/rando.txt')
     print(reg.count)
+    print(newer.count)
 
