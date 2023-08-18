@@ -1,11 +1,12 @@
 import unittest
 import os 
-from os.path import join, abspath, expanduser, expandvars, isfile
+from os.path import abspath, expanduser, expandvars, isfile
 from filecmp import cmp
 from src.utils import NamespaceModifier, resolve_new_path
 
-#Assuming all inputs are valid because they are validated beforehand
 class TestFile(unittest.TestCase):
+    """Test that file modification works as expected
+    """
 
     def setUp(self):
         self.ns_mod = NamespaceModifier('cppmicroservices', 'mw_cppms')
@@ -20,6 +21,8 @@ class TestFile(unittest.TestCase):
                 os.remove(file)
 
     def test_no_filechanges(self):
+        """Testing file without references to cppmicroservices namespace should not have contents changed
+        """
         file_name = abspath(expanduser(expandvars('./test/resources/test/no_change.txt')))
         new_path = resolve_new_path(file_name, self.new_dir, self.old_dir)
         count = self.ns_mod.change_file_namespace(
@@ -30,6 +33,8 @@ class TestFile(unittest.TestCase):
         self.assertTrue(cmp('./test/resources/expected/no_change.txt', './test/resources/expected/expected_no_change.txt', shallow=False))
 
     def test_filechange_match(self):
+        """Testing file with references to cppmicroservices namespace should have all refernces match new namespace
+        """
         file_name = abspath(expanduser(expandvars('./test/resources/test/cpp_basic.txt')))
         new_path = resolve_new_path(file_name, self.new_dir, self.old_dir)
         count = self.ns_mod.change_file_namespace(

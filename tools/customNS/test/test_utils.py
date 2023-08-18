@@ -1,12 +1,14 @@
 import unittest
-import glob
 from os import listdir
 from os.path import abspath, expanduser, expandvars, dirname, join, basename
-from filecmp import cmp
 from src.utils import resolve_new_path, check_valid_namespace, wrap_ignore_files
 
 class TestFile(unittest.TestCase): 
+    """Testing various helper functions
+    """
     def test_resolve_new_path(self):
+        """Testing location of where new file will be written is correct. Assuming input pre-validated.
+        """
         file = abspath(expanduser(expandvars(dirname(__file__))))
         file = abspath(expanduser(expandvars(join(file, 'resources/test/test_dir_change/inner/inner.cpp'))))
 
@@ -22,30 +24,37 @@ class TestFile(unittest.TestCase):
         self.assertEqual(basename(dirname(dirname(dirname(new_path)))), 'expected')
         
     def test_valid_namespace(self):
+        """Testing valid namespace is valid
+        """
         self.assertTrue(check_valid_namespace('mw_cppms'))
         self.assertTrue(check_valid_namespace('mwcppms'))
         self.assertTrue(check_valid_namespace('abcd'))
         self.assertTrue(check_valid_namespace('random_xyz_1235'))
 
     def test_invalid_namespace(self):
+        """Testing invalid namespace is invalid
+        """
         self.assertFalse(check_valid_namespace('1234asd'))
+        self.assertFalse(check_valid_namespace('if'))
         self.assertFalse(check_valid_namespace('random xyz_1235'))
         self.assertFalse=(check_valid_namespace('你好')) # Although valid c++ namespace, this tool does not support non-english identifiers
 
     def test_wrap_ignore_files(self):
+        """Testing files specified to be ignored are ignored
+        """
         dir = abspath(expanduser(expandvars(dirname(__file__))))
         dir = abspath(expanduser(expandvars(join(dir, 'resources/test/test_dir_change'))))
 
         files = listdir(dir)
         ignore = {f"{abspath(expanduser(expandvars(join(dir, 'ignore'))))}"}
-        ignore_files = wrap_ignore_files(ignore, [])
+        ignore_files = wrap_ignore_files(ignore, [], [])
 
         self.assertEqual(ignore_files(dir, files), {'ignore'})
 
         dir = abspath(expanduser(expandvars(join(dir, 'ignore'))))
         files = listdir(dir)
         ignore = set()
-        ignore_files = wrap_ignore_files(ignore, ['*.cpp'])
+        ignore_files = wrap_ignore_files(ignore, ['*.cpp'], [])
         self.assertEqual(ignore_files(dir, files), {'no_change.cpp'})
 
 if __name__ == '__main__':
