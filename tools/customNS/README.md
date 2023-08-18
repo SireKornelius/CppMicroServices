@@ -37,15 +37,11 @@ Suppose you have obtained the source code of the CppMicroServices library and it
 python /path/to/CppMicroServices/tools/customNS/src/script.py mw_cppms /path/to/new_dir
 ```
 
-The utility will copy the necessary files from the CppMicroServices library to `/path/to/new_dir`, modifying the namespace to `my_custom_namespace`. Then, navigate to `/path/to/new_dir` and build the modified CppMicroServices library.
+The utility will copy the necessary files from the CppMicroServices library to `/path/to/new_dir`, modifying the namespace to `mw_cppms`. Then, navigate to `/path/to/new_dir` and build the modified CppMicroServices library.
 
 ## Limitations
 1. No support for changing namespace to consist of non-english characters even if it may be valid C++ syntax
 2. Documentation will not be modified
-
-## Contributing
-
-Contributions are welcome! If you encounter any issues or have suggestions for improvement, please open an issue or submit a pull request.
 
 ## Contact
 
