@@ -327,12 +327,10 @@ class DirGenerator:
                 to_inspect=set(self.files_to_analyze), 
                 excluded_patterns=to_filter, 
                 files_to_not_pattern_match=files_to_not_apply_filter,
-                ),
-            dirs_exist_ok=True
+                )
         )    
 
         count = 0
-
         gen = progressbar(range(len(self.files_to_analyze)), "Running: ")
 
         # Look through all files with specified extensions, in specified dirs, and write new contents to new_path
